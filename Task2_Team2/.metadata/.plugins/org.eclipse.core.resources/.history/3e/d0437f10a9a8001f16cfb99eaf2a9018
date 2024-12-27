@@ -1,0 +1,224 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
+import java.time.format.DateTimeParseException;
+
+public class EgyptianID {
+    
+    private String name;
+    private String gender; 
+    private String religion; 
+    private String governorate; 
+    private String birthdate;
+    private String occupation;
+    
+    private final String issueDate;
+    private final String expirationDate;
+    
+    private final String uniqueID;
+
+    private enum Governorate {
+    	CAIRO(01),
+    	ALEXANDRIA(02),
+    	PORTSAID(03),
+    	SUEZ(04),
+    	DAMIETTA(11),
+    	DAKAHLIA(12),
+    	SHARKIA(13),
+    	QALUBIA(14),
+    	KAFRELSHEIKH(15),
+    	GHARBIA(16),
+    	MONUFIA(17),
+    	BEHEIRA(18),
+    	ISMAILIA(19),
+    	GIZA(21),
+    	BENISUEF(22),
+    	FAYOUM(23),
+    	MINYA(24),
+    	ASSIUT(25),
+    	SOHAG(26),
+    	QENA(27),
+    	ASWAN(28),
+    	LUXOR(29),
+    	REDSEA(31),
+    	NEWVALLEY(32),
+    	MATROUH(33),
+    	NORTHSINAI(34),
+    	SOUTHSINAI(35),
+    	FOREIGNNATIONALS(88);
+    	final int governorateCode; //final because governorateCode can NOT be changed 
+    	//enum instructor to assign each of the governorates to its code
+    	Governorate(int governorateCode){
+    		this.governorateCode = governorateCode;};
+    	public int getGovernorateCode() {
+    	    return governorateCode;
+    	        }
+    }
+    
+    
+    public EgyptianID(String name, String gender, String religion, String governorate, String birthdate, String occupation) {
+        this.name = validateName(name.trim());
+        this.gender = validateGender(gender.trim());
+        this.religion = validateReligion(religion.trim());
+        this.governorate = validateGovernorate(governorate.trim());
+        this.birthdate = validateBirthdate(birthdate.trim());
+        this.occupation = title(occupation.trim());
+        
+        LocalDate currentdate= LocalDate.now();
+		LocalDate expirationDate = currentdate.plusYears(7); 
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("dd/MM/yyyy"); //set the proper date format
+		this.issueDate = currentdate.format(format);
+    	this.expirationDate= expirationDate.format(format);
+    	
+        this.uniqueID = generateUniqueID();
+        
+        ID_File.saveID(this);
+    }
+    
+    private boolean containsNumber(String str) {
+        for (char c : str.toCharArray()) {
+            if (Character.isDigit(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private String generateUniqueID() {
+    	
+    	String[] parts = birthdate.split("/");
+           	
+    	//first digit is the century
+        int year = Integer.parseInt(parts[2]);
+    	int century = year/100;
+    	switch(century) {
+		case 19: century= 2;
+		 break;
+		case 20: century= 3;
+		 break;
+		default : throw new IllegalArgumentException("Invalid Century");
+	    }
+    	
+    	//second part is birth day
+		int day = Integer.parseInt(parts[0]);
+		
+		//third part is the month
+		int month = Integer.parseInt(parts[1]);
+		
+		//fourth part is the last two digits of birth year 
+		String last2ofYear = Integer.toString(year).substring(2);
+		
+		//Fifth part is birth province code
+		Governorate gov = Governorate.valueOf(governorate.toUpperCase());
+        int governorateCode = gov.getGovernorateCode();
+		
+        //sixth part is random serial number
+        Random random = new Random();
+    	int randomID = random.nextInt(9999-1000)+1000;
+
+        // Generate the unique ID based on birthdate, gender, and governorate code
+        String generatedID = Integer.toString(century) + Integer.toString(day) + Integer.toString(month) + last2ofYear + Integer.toString(governorateCode) + Integer.toString(randomID);   
+        return generatedID;
+    }
+
+
+    private String validateName(String name) {
+    	boolean hasNumber = containsNumber(name);
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty.");
+        }
+        else if (hasNumber) {
+            throw new IllegalArgumentException("Name cannot contain a number.");
+        }
+        return name;
+    }
+
+    private String validateGender(String gender) {
+        if (!gender.equalsIgnoreCase("Male") && !gender.equalsIgnoreCase("Female")) {
+            throw new IllegalArgumentException("Invalid gender. Must be 'Male' or 'Female'.");
+        }
+        return gender;
+    }
+
+    private String validateReligion(String religion) {
+        if (!religion.equalsIgnoreCase("Muslim") && !religion.equalsIgnoreCase("Christian")) {
+            throw new IllegalArgumentException("Invalid religion. Must be 'Muslim' or 'Christian'.");
+        }
+        return religion;
+    }
+    private String validateGovernorate(String governorate) {
+        if (governorate == null || governorate.isEmpty()) {
+            throw new IllegalArgumentException("Governorate cannot be empty.");
+        }
+        return governorate;
+    }
+    private String validateBirthdate(String birthdate) {
+        if (birthdate == null || !birthdate.matches("\\d{2}/\\d{2}/\\d{4}")) {
+            throw new IllegalArgumentException("Birthdate must be in the format DD/MM/YYYY.");
+        }
+        String[] parts = birthdate.split("/");
+        int day = Integer.parseInt(parts[0]);
+        int month = Integer.parseInt(parts[1]);
+        int year = Integer.parseInt(parts[2]);
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("Month must be between 01 and 12.");
+        }
+        
+        if (day < 1 || day > 31) {
+            throw new IllegalArgumentException("Day must be between 01 and 31.");
+        }
+        if (year < 1900 || year > 2100 ) {
+        	throw new IllegalArgumentException("year must be between 1900 and 2100.");
+        }
+        
+        return birthdate;
+    }
+    
+    public void setName(String name) {
+        this.name = validateName(name);
+    }
+    public void setGender(String gender) {
+        this.gender = validateGender(gender);
+    }
+    public void setReligion(String religion) {
+        this.religion = validateReligion(religion);
+    }
+    public void setOccupation(String occupation) {
+        this.religion = validateReligion(occupation);
+    }
+    public void setGovernorate(String governorate) {
+        this.governorate = validateGovernorate(governorate);
+    }
+    public void setBirthdate(String birthdate) {
+        this.birthdate = validateBirthdate(birthdate);
+    }
+    
+    public String getName() { return name; }
+    public String getGender() { return gender; }
+    public String getReligion() { return religion; }
+    public String getGovernorate() { return governorate; }
+    public String getBirthdate() { return birthdate; }
+    public String getOccupation() { return occupation; }
+    public String getIssueDate() { return issueDate; }
+    public String getUniqueID() { return uniqueID; }    
+
+    public String title(String str)
+    {
+    	return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    }
+        
+    @Override
+    public String toString() {
+        return "EgyptianID{" +"\n" +
+                "name='" + title(name) + '\'' + "\n" +
+                "gender='" + title(gender) + '\'' + "\n" +
+                "religion='" + title(religion) + '\'' + "\n" +
+                "governorate='" + title(governorate) + '\'' + "\n" +
+                "occupation='" + title(occupation) + '\'' + "\n" +
+                "birthdate='" + birthdate + '\'' + "\n" +
+                "issueDate='" + issueDate + '\'' + "\n" +
+                "expirationDate='" + expirationDate + '\'' + "\n" +
+                "uniqueID='" + uniqueID + '\'' +
+                '}';
+    }
+}

@@ -1,0 +1,136 @@
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class EgyptianID {
+    
+    private String name;
+    private String gender; 
+    private String religion; 
+    private String governorate; 
+    private String birthdate;
+    
+    private final String issueDate;
+    
+    private static final AtomicInteger atomicInteger = new AtomicInteger(ID_File.getRecentID());
+    private final String uniqueID;
+
+    
+    public EgyptianID(String name, String gender, String religion, String governorate, String birthdate) {
+        this.name = validateName(name);
+        this.gender = validateGender(gender);
+        this.religion = validateReligion(religion);
+        this.governorate = validateGovernorate(governorate);
+        this.birthdate = validateBirthdate(birthdate);
+        this.issueDate = "05/11/2024";
+        this.uniqueID = generateUniqueID();
+    }
+    
+    private boolean containsNumber(String str) {
+        for (char c : str.toCharArray()) {
+            if (Character.isDigit(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private String generateUniqueID() {
+    	int UniqueNum ;
+    	while(true) {
+        UniqueNum = atomicInteger.incrementAndGet();
+        if (!ID_File.checkForID(UniqueNum)) {
+            ID_File.setRecentID(UniqueNum);
+            return birthdate.replace("/", "") + gender.substring(0, 1).toUpperCase() + governorate.substring(0, 2).toUpperCase() + UniqueNum;
+            }
+    	}
+    }
+
+    private String validateName(String name) {
+    	boolean hasNumber = containsNumber(name);
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty.");
+        }
+        else if (hasNumber) {
+            throw new IllegalArgumentException("Name cannot contain a number.");
+        }
+        return name;
+    }
+
+    private String validateGender(String gender) {
+        if (!gender.equalsIgnoreCase("Male") && !gender.equalsIgnoreCase("Female")) {
+            throw new IllegalArgumentException("Invalid gender. Must be 'Male' or 'Female'.");
+        }
+        return gender;
+    }
+
+    private String validateReligion(String religion) {
+        if (!religion.equalsIgnoreCase("Muslim") && !religion.equalsIgnoreCase("Christian")) {
+            throw new IllegalArgumentException("Invalid religion. Must be 'Muslim' or 'Christian'.");
+        }
+        return religion;
+    }
+    private String validateGovernorate(String governorate) {
+        if (governorate == null || governorate.isEmpty()) {
+            throw new IllegalArgumentException("Governorate cannot be empty.");
+        }
+        return governorate;
+    }
+    private String validateBirthdate(String birthdate) {
+        if (birthdate == null || !birthdate.matches("\\d{2}/\\d{2}/\\d{4}")) {
+            throw new IllegalArgumentException("Birthdate must be in the format DD/MM/YYYY.");
+        }
+        String[] parts = birthdate.split("/");
+        int day = Integer.parseInt(parts[0]);
+        int month = Integer.parseInt(parts[1]);
+        int year = Integer.parseInt(parts[2]);
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("Month must be between 01 and 12.");
+        }
+        
+        if (day < 1 || day > 31) {
+            throw new IllegalArgumentException("Day must be between 01 and 31.");
+        }
+        return birthdate;
+    }
+    
+    public void setName(String name) {
+        this.name = validateName(name);
+    }
+    public void setGender(String gender) {
+        this.gender = validateGender(gender);
+    }
+    public void setReligion(String religion) {
+        this.religion = validateReligion(religion);
+    }
+    public void setGovernorate(String governorate) {
+        this.governorate = validateGovernorate(governorate);
+    }
+    public void setBirthdate(String birthdate) {
+        this.birthdate = validateBirthdate(birthdate);
+    }
+    
+    public String getName() { return name; }
+    public String getGender() { return gender; }
+    public String getReligion() { return religion; }
+    public String getGovernorate() { return governorate; }
+    public String getBirthdate() { return birthdate; }
+    public String getIssueDate() { return issueDate; }
+    public String getUniqueID() { return uniqueID; }
+
+    public String title(String str)
+    {
+    	return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+    
+    @Override
+    public String toString() {
+        return "EgyptianID{" +"\n" +
+                "name='" + title(name) + '\'' + "\n" +
+                "gender='" + title(gender) + '\'' + "\n" +
+                "religion='" + title(religion) + '\'' + "\n" +
+                "governorate='" + title(governorate) + '\'' + "\n" +
+                "birthdate='" + birthdate + '\'' + "\n" +
+                "issueDate='" + issueDate + '\'' + "\n" +
+                "uniqueID='" + uniqueID + '\'' +
+                '}';
+    }
+}

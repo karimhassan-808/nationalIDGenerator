@@ -1,0 +1,104 @@
+import java.io.*;
+
+public class ID_File {
+    private static final String ID_FILE = "SavedIDs.csv";
+
+    // Save all fields in CSV format
+    public static void saveID(EgyptianID id) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ID_FILE, true))) {
+            File file = new File(ID_FILE);
+
+            if (file.length() == 0) {
+                writer.write("Name,Gender,Religion,Governorate,Birthdate,IssueDate,Occupation,UniqueID,PicturePath");
+                writer.newLine();
+            }
+
+            // Write the ID data including the picture path
+            writer.write(String.join(",",
+                    id.getName(),
+                    id.getGender(),
+                    id.getReligion(),
+                    id.getGovernorate(),
+                    id.getBirthdate(),
+                    id.getIssueDate(),
+                    id.getOccupation(),
+                    id.getUniqueID(),
+                    id.getPicturePath() // Include the picture path
+            ));
+            writer.newLine();
+        } catch (IOException e) {
+            System.out.println("Error writing to " + ID_FILE);
+        }
+    }
+    Update the getIDInfo method to return the picture path along with other ID details:
+    java
+    Copy code
+    public static String getIDInfo(String uniqueID) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ID_FILE))) {
+            String line;
+            reader.readLine(); // Skip the header row
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split(",");
+                if (fields.length == 9 && fields[7].trim().equals(uniqueID)) { // Adjust for 9 fields
+                    return "Name: " + fields[0].trim() + "\n" +
+                           "Gender: " + fields[1].trim() + "\n" +
+                           "Religion: " + fields[2].trim() + "\n" +
+                           "Governorate: " + fields[3].trim() + "\n" +
+                           "Birthdate: " + fields[4].trim() + "\n" +
+                           "Occupation: " + fields[6].trim() + "\n" +
+                           "Issue Date: " + fields[5].trim() + "\n" +
+                           "Unique ID: " + fields[7].trim() + "\n" +
+                           "Picture Path: " + fields[8].trim(); // Include the picture path
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading from " + ID_FILE);
+        }
+        return "ID not found";
+    }
+
+    // Check if a unique ID exists in the file
+    public static boolean checkForID(String uniqueID) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ID_FILE))) {
+            String line;
+            reader.readLine(); // Skip the header row
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split(",");
+                if (fields.length > 6 && fields[7].trim().equals(uniqueID)) {
+                    return true; // ID found
+                }
+            }
+        } catch (IOException | NumberFormatException e) {
+            System.out.println("Error reading " + ID_FILE);
+        }
+        return false; // ID not found
+    } 
+    
+    
+    
+    // Retrieve information for a specific ID
+    public static String getIDInfo(String uniqueID) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ID_FILE))) {
+            String line;
+            reader.readLine(); // Skip the header row
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split(",");
+                if (fields.length == 8 && fields[7].trim().equals(uniqueID)) {  // Check if UniqueID matches
+                    // Return the information as a formatted string
+                    return "Name: " + fields[0].trim() + "\n" +
+                           "Gender: " + fields[1].trim() + "\n" +
+                           "Religion: " + fields[2].trim() + "\n" +
+                           "Governorate: " + fields[3].trim() + "\n" +
+                           "Birthdate: " + fields[4].trim() + "\n" +
+                           "Occupation: " + fields[6].trim() + "\n" +
+                           "Issue Date: " + fields[5].trim() + "\n" +
+                           "Unique ID: " + fields[7].trim();
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading from " + ID_FILE);
+        }
+        return "ID not found"; // Return a message if the ID is not found
+    }
+}
+
